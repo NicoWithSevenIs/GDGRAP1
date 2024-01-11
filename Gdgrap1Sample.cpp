@@ -1,4 +1,5 @@
 #include <GLFW/glfw3.h>
+#include "DrawPentagon.h"
 
 int main(void)
 {
@@ -20,7 +21,7 @@ int main(void)
     glfwMakeContextCurrent(window);
 
     /*Put code below here*/
-
+ 
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -30,11 +31,7 @@ int main(void)
 
         /*put rendering stuff here*/
 
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f(0.0f, 0.5f);
-        glVertex2f(0.5f, -0.5f);
-        glEnd();
+        DrawPentagon::draw(0.5f);
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

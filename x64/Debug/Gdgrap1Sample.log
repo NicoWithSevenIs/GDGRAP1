@@ -1,2 +1,4 @@
-﻿  Gdgrap1Sample.cpp
+﻿  DrawPentagon.cpp
+C:\Users\pinat\Uni Github Stuff\GDGRAP1\DrawPentagon.cpp(4,18): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+C:\Users\pinat\Uni Github Stuff\GDGRAP1\DrawPentagon.cpp(22,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Gdgrap1Sample.vcxproj -> C:\Users\pinat\Uni Github Stuff\GDGRAP1\x64\Debug\Gdgrap1Sample.exe

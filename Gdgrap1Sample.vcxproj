@@ -140,6 +140,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Gdgrap1Sample.cpp" />
+    <ClCompile Include="DrawPentagon.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DrawPentagon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
