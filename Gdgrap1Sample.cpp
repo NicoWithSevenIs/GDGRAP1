@@ -1,3 +1,4 @@
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include "DrawPentagon.h"
 
@@ -31,7 +32,7 @@ int main(void)
 
         /*put rendering stuff here*/
 
-        DrawPentagon::draw(0.5f);
+        //DrawPentagon::draw(0.5f);
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
