@@ -1,3 +1,0 @@
-﻿  Gdgrap1Sample.cpp
-C:\Users\pinat\Uni Github Stuff\GDGRAP1\Gdgrap1Sample.cpp(113,77): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  Gdgrap1Sample.vcxproj -> C:\Users\pinat\Uni Github Stuff\GDGRAP1\x64\Debug\Gdgrap1Sample.exe
