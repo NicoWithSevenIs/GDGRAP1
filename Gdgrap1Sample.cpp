@@ -8,6 +8,22 @@
 #include <iostream>
 #include <string>
 
+
+float x_mod = 0;
+float y_mod = 0;
+
+void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (!(action == GLFW_PRESS))
+        return;
+
+    switch (key) {
+        case GLFW_KEY_W: y_mod += 0.1; break;
+        case GLFW_KEY_A: x_mod -= 0.1; break;
+        case GLFW_KEY_S: y_mod -= 0.1; break;
+        case GLFW_KEY_D: x_mod += 0.1; break;
+    }
+}
+
 int main(void)
 {
 
@@ -31,6 +47,8 @@ int main(void)
     /*Put code below here*/
     
     gladLoadGL();
+
+    glfwSetKeyCallback(window, Key_Callback);
 
     std::fstream vertSrc("Shaders/shaders.vert");
 
@@ -123,17 +141,21 @@ int main(void)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    float x_mod = 0;
+    unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
+    unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        x_mod += 0.0001f;
+        
 
-        unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
+       
         glUniform1f(xLoc, x_mod);
+
+      
+        glUniform1f(yLoc, y_mod);
 
         /*put rendering stuff here*/
         glUseProgram(shaderProg);
