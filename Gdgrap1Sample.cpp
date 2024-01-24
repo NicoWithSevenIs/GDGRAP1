@@ -33,6 +33,7 @@ int main(void)
     gladLoadGL();
 
     std::fstream vertSrc("Shaders/shaders.vert");
+
     std::stringstream vertBuff;
     vertBuff << vertSrc.rdbuf();
 
@@ -121,12 +122,18 @@ int main(void)
     glBindVertexArray(0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    float x_mod = 0;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        x_mod += 0.0001f;
+
+        unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
+        glUniform1f(xLoc, x_mod);
 
         /*put rendering stuff here*/
         glUseProgram(shaderProg);
