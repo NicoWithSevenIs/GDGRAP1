@@ -1,4 +1,9 @@
 #include "glad/glad.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <GLFW/glfw3.h>
 #include "DrawPentagon.h"
 
@@ -9,20 +14,26 @@
 #include <string>
 
 
-float x_mod = 0;
-float y_mod = 0;
+glm::mat4 identity = glm::mat4(1.0f);
+float x = 0, y = 0, z = 0;
+float scale_x = 5, scale_y = 5, scale_z = 1;
+float theta = 90;
+float axis_x = 0, axis_y = 1, axis_z = 0;
+
 
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (!(action == GLFW_PRESS))
         return;
 
     switch (key) {
-        case GLFW_KEY_W: y_mod += 0.1; break;
-        case GLFW_KEY_A: x_mod -= 0.1; break;
-        case GLFW_KEY_S: y_mod -= 0.1; break;
-        case GLFW_KEY_D: x_mod += 0.1; break;
+        case GLFW_KEY_A: theta--; break;
+        case GLFW_KEY_D: theta++; break;
+        case GLFW_KEY_W: scale_x += 0.1f; scale_y += 0.1f;  break;
+        case GLFW_KEY_S: scale_x -= 0.1f; scale_y -= 0.1f;  break;
+        
     }
 }
+
 
 int main(void)
 {
@@ -141,8 +152,12 @@ int main(void)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
-    unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
+    //unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
+    //unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
+
+ 
+  
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -150,12 +165,31 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         
+        glm::mat4 transformation_matrix = glm::translate(
+            identity,
+            glm::vec3(x, y, z)
+        );
 
+        transformation_matrix = glm::scale(
+            transformation_matrix,
+            glm::vec3(scale_x, scale_y, scale_z)
+        );
+
+        theta += 0.025;
+        transformation_matrix = glm::rotate(
+            transformation_matrix,
+            glm::radians(theta),
+            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
+        );
+
+        unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
+
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
        
-        glUniform1f(xLoc, x_mod);
+        //glUniform1f(xLoc, x_mod);
 
       
-        glUniform1f(yLoc, y_mod);
+       // glUniform1f(yLoc, y_mod);
 
         /*put rendering stuff here*/
         glUseProgram(shaderProg);
