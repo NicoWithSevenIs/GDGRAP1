@@ -5,8 +5,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include "tiny_obj_loader.h"
 
+#include <iostream>
+#include <string>
+
 int main(void)
 {
+
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -27,7 +31,35 @@ int main(void)
     /*Put code below here*/
     
     gladLoadGL();
+
+    std::fstream vertSrc("Shaders/shaders.vert");
+    std::stringstream vertBuff;
+    vertBuff << vertSrc.rdbuf();
+
+    std::string vertS = vertBuff.str();
+    const char* v = vertS.c_str();
     
+    std::fstream fragSrc("Shaders/shaders.frag");
+    std::stringstream fragBuff;
+    fragBuff << fragSrc.rdbuf();
+
+    std::string fragS = fragBuff.str();
+    const char* f = fragS.c_str();
+
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &v, NULL);
+    glCompileShader(vertexShader);
+
+    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragShader, 1, &f, NULL);
+    glCompileShader(fragShader);
+
+    GLuint shaderProg = glCreateProgram();
+    glAttachShader(shaderProg, vertexShader);
+    glAttachShader(shaderProg, fragShader);
+
+    glLinkProgram(shaderProg);
+
     std::string path = "3D/bunny.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
@@ -52,23 +84,11 @@ int main(void)
         );
     }
 
-
-
-    GLfloat vertices[]{
-        // x,    y,    z 
-          0.f, 0.5f, 0.f, //0
-          -0.5f, -0.5f, 0.f, //1
-          0.5f,   -0.5f, 0.f //2
-    };
-    
-    GLuint indices[]{
-        0, 1, 2
-    };
-
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO); // line responsible for VAO
     glGenBuffers(1, &VBO); // line responsible for VBO
     glGenBuffers(1, &EBO);
+
 
     glBindVertexArray(VAO); // assigns VAO currently being edited
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // assigns VBO currently being edited and attaches VBO to VAO
@@ -107,7 +127,9 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+
         /*put rendering stuff here*/
+        glUseProgram(shaderProg);
         glBindVertexArray(VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
