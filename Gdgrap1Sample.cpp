@@ -26,8 +26,8 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         return;
 
     switch (key) {
-        case GLFW_KEY_A: theta--; break;
-        case GLFW_KEY_D: theta++; break;
+        case GLFW_KEY_A: theta-=15; break;
+        case GLFW_KEY_D: theta+=15; break;
         case GLFW_KEY_W: scale_x += 0.1f; scale_y += 0.1f;  break;
         case GLFW_KEY_S: scale_x -= 0.1f; scale_y -= 0.1f;  break;
         
