@@ -141,9 +141,12 @@
   <ItemGroup>
     <ClCompile Include="Gdgrap1Sample.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LoadMesh.hpp" />
+    <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>

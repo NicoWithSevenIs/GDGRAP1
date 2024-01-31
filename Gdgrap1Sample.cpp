@@ -12,6 +12,8 @@
 #include <iostream>
 #include <string>
 
+#include "ShaderManager.hpp"
+
 
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0.7, y = 0, z = 0;
@@ -44,36 +46,12 @@ int main(void)
 
     gladLoadGL();
 
-    std::fstream vertSrc("Shaders/shaders.vert");
+    ShaderManager shader = ShaderManager();
+    shader.LoadShader("Shaders/shaders.vert", GL_VERTEX_SHADER);
+    shader.LoadShader("Shaders/shaders.frag", GL_FRAGMENT_SHADER);
 
-    std::stringstream vertBuff;
-    vertBuff << vertSrc.rdbuf();
-
-    std::string vertS = vertBuff.str();
-    const char* v = vertS.c_str();
-
-    std::fstream fragSrc("Shaders/shaders.frag");
-    std::stringstream fragBuff;
-    fragBuff << fragSrc.rdbuf();
-
-    std::string fragS = fragBuff.str();
-    const char* f = fragS.c_str();
-
-    //Initializing Shaders
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &v, NULL);
-    glCompileShader(vertexShader);
-
-    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragShader, 1, &f, NULL);
-    glCompileShader(fragShader);
-
-    GLuint shaderProg = glCreateProgram();
-    glAttachShader(shaderProg, vertexShader);
-    glAttachShader(shaderProg, fragShader);
-
-    glLinkProgram(shaderProg);
-
+    //glLinkProgram(shaderProg);
+    glLinkProgram(shader.getShaderProg());
     //Readingfor Mesh
     std::string path = "3D/bunny.obj";
     std::vector<tinyobj::shape_t> shapes;
@@ -164,12 +142,12 @@ int main(void)
             glm::vec3(x, y, z)
         );
 
-        
-        unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
-
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
        
-        glUseProgram(shaderProg);
+        unsigned int transformLoc = glGetUniformLocation(shader.getShaderProg(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
+
+        glUseProgram(shader.getShaderProg());
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
 
