@@ -43,15 +43,13 @@ int main(void)
     glfwMakeContextCurrent(window);
 
     /*Put code below here*/
-
     gladLoadGL();
 
     ShaderManager shader = ShaderManager();
     shader.LoadShader("Shaders/shaders.vert", GL_VERTEX_SHADER);
     shader.LoadShader("Shaders/shaders.frag", GL_FRAGMENT_SHADER);
-
-    //glLinkProgram(shaderProg);
     glLinkProgram(shader.getShaderProg());
+
     //Readingfor Mesh
     std::string path = "3D/bunny.obj";
     std::vector<tinyobj::shape_t> shapes;
@@ -124,33 +122,34 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         
-        glm::mat4 transformation_matrix = glm::rotate(
-            identity,
-            glm::radians(theta),
-            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
-        );
+        for (int i = 1; i <= 3; i++) {
 
-        transformation_matrix = glm::scale(
-            transformation_matrix,
-            glm::vec3(scale_x, scale_y, scale_z)
-        );
+            glm::mat4 transformation_matrix = glm::rotate(
+                identity,
+                glm::radians(theta +  120 * i),
+                glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
+            );
 
-        theta += 0.1;
+            transformation_matrix = glm::scale(
+                transformation_matrix,
+                glm::vec3(scale_x, scale_y, scale_z)
+            );
 
-        transformation_matrix = glm::translate(
-            transformation_matrix,
-            glm::vec3(x, y, z)
-        );
+            theta += 0.025;
 
-       
-        unsigned int transformLoc = glGetUniformLocation(shader.getShaderProg(), "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
+            transformation_matrix = glm::translate(
+                transformation_matrix,
+                glm::vec3(x, y, z)
+            );
 
-        glUseProgram(shader.getShaderProg());
+            unsigned int transformLoc = glGetUniformLocation(shader.getShaderProg(), "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
 
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
+            glUseProgram(shader.getShaderProg());
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
 
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
