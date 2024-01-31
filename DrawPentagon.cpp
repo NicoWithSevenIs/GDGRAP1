@@ -17,7 +17,7 @@ void DrawPentagon::draw(float side_length)
 
     float x, y;
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 0; i < 5; i++) {
 
         float angle = toRadians(72 * i);
 
