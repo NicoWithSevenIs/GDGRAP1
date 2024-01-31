@@ -14,11 +14,10 @@
 
 
 glm::mat4 identity = glm::mat4(1.0f);
-float x = 0, y = 0, z = 0;
-float scale_x = 5, scale_y = 5, scale_z = 1;
+float x = 0.7, y = 0, z = 0;
+float scale_x = 1, scale_y = 1, scale_z = 1;
 float theta = 90;
-float axis_x = 0, axis_y = 1, axis_z = 0;
-
+float axis_x = 0, axis_y = 0, axis_z = 1;
 
 
 int main(void)
@@ -31,7 +30,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(720, 720, "Nico Tolentino", NULL, NULL);
+    window = glfwCreateWindow(600, 600, "Nico Tolentino", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -147,9 +146,10 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         
-        glm::mat4 transformation_matrix = glm::translate(
+        glm::mat4 transformation_matrix = glm::rotate(
             identity,
-            glm::vec3(x, y, z)
+            glm::radians(theta),
+            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
         );
 
         transformation_matrix = glm::scale(
@@ -157,13 +157,14 @@ int main(void)
             glm::vec3(scale_x, scale_y, scale_z)
         );
 
-        theta += 0.025;
-        transformation_matrix = glm::rotate(
+        theta += 0.1;
+
+        transformation_matrix = glm::translate(
             transformation_matrix,
-            glm::radians(theta),
-            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
+            glm::vec3(x, y, z)
         );
 
+        
         unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
 
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
