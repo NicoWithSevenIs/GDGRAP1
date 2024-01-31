@@ -13,7 +13,7 @@
 #include <iostream>
 #include <string>
 
-
+float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0, y = 0, z = 0;
 float scale_x = 5, scale_y = 5, scale_z = 1;
@@ -30,7 +30,8 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_D: theta++; break;
         case GLFW_KEY_W: scale_x += 0.1f; scale_y += 0.1f;  break;
         case GLFW_KEY_S: scale_x -= 0.1f; scale_y -= 0.1f;  break;
-        
+        case GLFW_KEY_Q: z_mod -= 0.3f;  break;
+        case GLFW_KEY_E: z_mod += 0.3f;  scale_y -= 0.1f;  break;
     }
 }
 
@@ -44,8 +45,11 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    float window_width = 720.f;
+    float window_height = 720.f;
+
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(720, 720, "Nico Tolentino", NULL, NULL);
+    window = glfwCreateWindow(window_width, window_height, "Nico Tolentino", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -58,6 +62,8 @@ int main(void)
     /*Put code below here*/
     
     gladLoadGL();
+
+   // glViewport(0, 0, window_width, window_height);
 
     glfwSetKeyCallback(window, Key_Callback);
 
@@ -156,14 +162,31 @@ int main(void)
     //unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
 
  
-  
+    /*glm::mat4 projectionMatrix = glm::ortho(
+        -4.f, //left
+        4.f, //right
+        -4.f, //bot
+        4.f, //top
+        -1.f, //znear
+        1.f //zfar
+    );
+    */
 
+    
     /* Loop until the user closes the window */
+    /*
+    glm::mat4 projectionMatrix = glm::perspective(
+        glm::radians(60.f),//fov
+        window_height/window_width,//aspect ratio
+        0.1f, //znear != 0
+        100.f //zfar
+    );
+  */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-
+       // z = z_mod;
         
         glm::mat4 transformation_matrix = glm::translate(
             identity,
@@ -175,15 +198,17 @@ int main(void)
             glm::vec3(scale_x, scale_y, scale_z)
         );
 
-        theta += 0.025;
+        //theta += 0.025;
         transformation_matrix = glm::rotate(
             transformation_matrix,
             glm::radians(theta),
             glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
         );
 
-        unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
+        //unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
+        //glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
+        unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
        
         //glUniform1f(xLoc, x_mod);
