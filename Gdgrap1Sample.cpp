@@ -6,20 +6,15 @@
 
 #include <GLFW/glfw3.h>
 
-#define TINYOBJLOADER_IMPLEMENTATION 
-#include "tiny_obj_loader.h"
+//#define TINYOBJLOADER_IMPLEMENTATION 
+//#include "tiny_obj_loader.h"
 
 #include <iostream>
 #include <string>
 
+#include "Mesh.hpp"
 #include "ShaderManager.hpp"
 
-
-glm::mat4 identity = glm::mat4(1.0f);
-float x = 0.7, y = 0, z = 0;
-float scale_x = 1, scale_y = 1, scale_z = 1;
-float theta = 90;
-float axis_x = 0, axis_y = 0, axis_z = 1;
 
 
 int main(void)
@@ -50,70 +45,12 @@ int main(void)
     shader.LoadShader("Shaders/shaders.frag", GL_FRAGMENT_SHADER);
     glLinkProgram(shader.getShaderProg());
 
-    //Readingfor Mesh
-    std::string path = "3D/bunny.obj";
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> material;
-    std::string warning, error;
 
-    tinyobj::attrib_t attributes;
-
-    bool success = tinyobj::LoadObj(
-        &attributes,
-        &shapes,
-        &material,
-        &warning,
-        &error,
-        path.c_str()
-    );
-
-    //Preparing Buffer Objects
-    //get the EBO indices array
-    std::vector<GLuint> mesh_indices;
-
-    for (auto i : shapes[0].mesh.indices) {
-        mesh_indices.push_back(i.vertex_index);
-    }
-
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO); // line responsible for VAO
-    glGenBuffers(1, &VBO); // line responsible for VBO
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO); // assigns VAO currently being edited
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // assigns VBO currently being edited and attaches VBO to VAO
+    Mesh obj("3D/bunny.obj");
     
-    glBufferData(GL_ARRAY_BUFFER, 
-        sizeof(GL_FLOAT) * attributes.vertices.size(), //size in bytes
-        attributes.vertices.data(), //array
-        GL_STATIC_DRAW
-    ); // GL_STATIC_DRAW as the model doesn't move
-
-    glVertexAttribPointer(
-        0,
-        3, //x,y,z
-        GL_FLOAT,
-        GL_FALSE,
-        3 * sizeof(float),
-        (void*)0
-    );
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * mesh_indices.size(),
-        mesh_indices.data(),
-        GL_STATIC_DRAW
-    );
-
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
- 
   
+
+    
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -121,7 +58,8 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        
+        obj.Draw(shader);
+        /*
         for (int i = 1; i <= 3; i++) {
 
             glm::mat4 transformation_matrix = glm::rotate(
@@ -145,11 +83,14 @@ int main(void)
             unsigned int transformLoc = glGetUniformLocation(shader.getShaderProg(), "transform");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
 
-            glUseProgram(shader.getShaderProg());
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
-
+           
         }
+        */
+
+        glUseProgram(shader.getShaderProg());
+        glBindVertexArray(obj.getObj()["VAO"]);
+        glDrawElements(GL_TRIANGLES, obj.getMeshIndices().size(), GL_UNSIGNED_INT, 0);
+
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -161,9 +102,7 @@ int main(void)
 
     /*Cleanup here*/
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+   
     glfwTerminate();
     return 0;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <unordered_map>
+#include <vector>
 
 #include "glad/glad.h"
 
@@ -8,26 +10,45 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <GLFW/glfw3.h>
+#include "ShaderManager.hpp"
 
-//#define TINYOBJLOADER_IMPLEMENTATION
-//#include "tiny_obj_loader.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
+enum Transformation {
+	Translate,
+	Scale,
+	Rotate,
+};
 
 class Mesh{
 
 	private:
 
-		//glm::mat4 identity = glm::mat4(1.0f);
-		float x = 0.7, y = 0, z = 0;
-		float scale_x = 1, scale_y = 1, scale_z = 1;
-		float theta = 90;
-		float axis_x = 0, axis_y = 0, axis_z = 1;
+	private:
+
+		glm::vec3 translation;
+		glm::vec3 scale;
+		glm::vec3 rotation_axis;
+
+		std::unordered_map<std::string, GLuint> obj;
+		std::vector<GLuint> mesh_indices;
+
+		float theta;
 
 	public:
 
-		Mesh();
+		Mesh(std::string filename);
+		~Mesh();
 
+	public:
+		void Draw(ShaderManager& shader);
 
+	public:
+		std::vector<GLuint> getMeshIndices();
+		std::unordered_map<std::string, GLuint> getObj();
+		void setTransformation(Transformation type, glm::vec3 vector);		
+		void setTheta(float theta);
 
 };
