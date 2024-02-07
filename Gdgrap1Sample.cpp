@@ -20,6 +20,7 @@ float scale_x = 5, scale_y = 5, scale_z = 1;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
+float x_mod = 0.f;
 
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS)
@@ -183,13 +184,68 @@ int main(void)
     
     /* Loop until the user closes the window */
 
-   
-
+    glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
+    glm::vec3 center = glm::vec3(0, 5.f, 0);
+    
  
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+
+
+        
+        glm::vec3 camera(x_mod, 0, 10.f);
+      
+        /*
+        glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
+       
+        glm::vec3 F = glm::vec3(glm::normalize(center - camera));
+
+        glm::vec3 R = glm::vec3(glm::cross(F, worldUP));
+
+        glm::vec3 U = glm::normalize(glm::cross(R, F));
+
+        //ruf
+
+        std::vector<std::vector<float>> toMat = {
+            {R.x, R.y, R.z},
+            {U.x, U.y, U.z},
+            {F.x, F.y, F.z}
+        };
+        glm::mat4 cameraOrientation = glm::mat4(1.f);
+
+       
+        /*
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                cameraOrientation[j][i] = toMat[i][j];
+            }
+        }  
+        
+   
+        cameraOrientation[0][0] = R.x;
+        cameraOrientation[1][0] = R.y;
+        cameraOrientation[2][0] = R.z;
+
+        cameraOrientation[0][1] = U.x;
+        cameraOrientation[1][1] = U.y;
+        cameraOrientation[2][1] = U.z;
+
+        cameraOrientation[0][2] = -F.x;
+        cameraOrientation[1][2] = -F.y;
+        cameraOrientation[2][2] = -F.z;
+
+        glm::mat4 viewMatrix = cameraOrientation * camPos;
+        
+        */
+        
+        glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
+        
+
+
+
+
        // z = z_mod;
         glm::mat4 transformation_matrix = glm::translate(
             identity,
@@ -218,6 +274,9 @@ int main(void)
        
         unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+        unsigned int viewLoc = glGetUniformLocation(shaderProg, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
         unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
