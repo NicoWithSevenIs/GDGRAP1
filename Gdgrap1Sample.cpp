@@ -5,7 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <GLFW/glfw3.h>
-#include "DrawPentagon.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include "tiny_obj_loader.h"
@@ -25,6 +24,15 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (action != GLFW_PRESS)
         return;
 
+    if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) {
+        axis_x = 1;
+        axis_y = 0;
+    }
+    else if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) {
+        axis_x = 0;
+        axis_y = 1;
+    }
+
     switch (key) {
         case GLFW_KEY_W: y += 0.1f;  break;
         case GLFW_KEY_A: x -= 0.1f; break;
@@ -35,8 +43,14 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_Q: scale_x += 0.3f; scale_y += 0.3f; scale_z += 0.3f;  break;
         case GLFW_KEY_E: scale_x -= 0.3f; scale_y -= 0.3f; scale_z -= 0.3f;  break;
 
-        case GLFW_KEY_LEFT: theta -= 15.f; break;
-        case GLFW_KEY_RIGHT: theta += 15.f; break;
+        case GLFW_KEY_UP:
+        case GLFW_KEY_LEFT: 
+            theta -= 15.f; 
+        break;
+        case GLFW_KEY_DOWN:
+        case GLFW_KEY_RIGHT: 
+            theta += 15.f;
+        break;
 
         case GLFW_KEY_Z: zoom -= 10.f; break;
         case GLFW_KEY_X: zoom += 10.f; break;
