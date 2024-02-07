@@ -10,13 +10,16 @@
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include "tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include <iostream>
 #include <string>
 
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0.f, y = 0.f, z = -5.0f;
-float scale_x = 5, scale_y = 5, scale_z = 1;
+float scale_x = 1, scale_y =1, scale_z = 1;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
@@ -72,6 +75,18 @@ int main(void)
     
     gladLoadGL();
 
+    int img_width;
+    int img_height;
+    int colorChannels;
+
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned char* tex_bytes = stbi_load("3D/ayaya.png",
+        &img_width,
+        &img_height,
+        &colorChannels,
+        0);
+
     glViewport(0, 0, window_width, window_height);
 
     glfwSetKeyCallback(window, Key_Callback);
@@ -105,7 +120,7 @@ int main(void)
 
     glLinkProgram(shaderProg);
 
-    std::string path = "3D/bunny.obj";
+    std::string path = "3D/myCube.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -121,6 +136,19 @@ int main(void)
         path.c_str()
     );
 
+
+    GLfloat UV[]{
+        0.f, 1.f,
+        0.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        0.f, 1.f,
+        0.f, 0.f
+    };
+
+
     //get the EBO indices array
     std::vector<GLuint> mesh_indices;
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
@@ -129,10 +157,13 @@ int main(void)
         );
     }
 
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO, EBO, VBO_UV;
     glGenVertexArrays(1, &VAO); // line responsible for VAO
     glGenBuffers(1, &VBO); // line responsible for VBO
     glGenBuffers(1, &EBO);
+
+    glGenBuffers(1, &VBO_UV);
+
 
 
     glBindVertexArray(VAO); // assigns VAO currently being edited
@@ -151,6 +182,26 @@ int main(void)
         3 * sizeof(float),
         (void*)0
     );
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * sizeof(UV) / sizeof(UV[0]),
+        &UV[0],
+        GL_DYNAMIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        2 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(2);
+
+
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
@@ -181,7 +232,27 @@ int main(void)
     );
     */
 
-    
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexImage2D(GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        img_width,
+        img_height,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        tex_bytes
+    );
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(tex_bytes);
+
+    glEnable(GL_DEPTH_TEST);
+
     /* Loop until the user closes the window */
 
     glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
@@ -191,7 +262,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
         
@@ -257,7 +328,7 @@ int main(void)
             glm::vec3(scale_x, scale_y, scale_z)
         );
 
-        //theta += 0.025;
+        theta += 0.025;
         transformation_matrix = glm::rotate(
             transformation_matrix,
             glm::radians(theta),
@@ -283,7 +354,10 @@ int main(void)
        
         //glUniform1f(xLoc, x_mod);
 
-      
+        GLuint tex0Address = glGetUniformLocation(shaderProg, "tex0");
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(tex0Address, 0);
+
        // glUniform1f(yLoc, y_mod);
 
         /*put rendering stuff here*/
@@ -304,6 +378,7 @@ int main(void)
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+    glDeleteBuffers(1, &VBO_UV);
     glfwTerminate();
     return 0;
 }
