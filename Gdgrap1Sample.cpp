@@ -15,23 +15,31 @@
 
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
-float x = 0, y = 0, z = 0;
+float x = 0.f, y = 0.f, z = -5.0f;
 float scale_x = 5, scale_y = 5, scale_z = 1;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
-
+float zoom = 60.f;
 
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (!(action == GLFW_PRESS))
+    if (action != GLFW_PRESS)
         return;
 
     switch (key) {
-        case GLFW_KEY_A: theta--; break;
-        case GLFW_KEY_D: theta++; break;
-        case GLFW_KEY_W: scale_x += 0.1f; scale_y += 0.1f;  break;
-        case GLFW_KEY_S: scale_x -= 0.1f; scale_y -= 0.1f;  break;
-        case GLFW_KEY_Q: z_mod -= 0.3f;  break;
-        case GLFW_KEY_E: z_mod += 0.3f;  scale_y -= 0.1f;  break;
+        case GLFW_KEY_W: y += 0.1f;  break;
+        case GLFW_KEY_A: x -= 0.1f; break;
+        case GLFW_KEY_S: y -= 0.1f;  break;
+        case GLFW_KEY_D: x += 0.1f; break;
+        
+        
+        case GLFW_KEY_Q: scale_x += 0.3f; scale_y += 0.3f; scale_z += 0.3f;  break;
+        case GLFW_KEY_E: scale_x -= 0.3f; scale_y -= 0.3f; scale_z -= 0.3f;  break;
+
+        case GLFW_KEY_LEFT: theta -= 15.f; break;
+        case GLFW_KEY_RIGHT: theta += 15.f; break;
+
+        case GLFW_KEY_Z: zoom -= 10.f; break;
+        case GLFW_KEY_X: zoom += 10.f; break;
     }
 }
 
@@ -63,7 +71,7 @@ int main(void)
     
     gladLoadGL();
 
-   // glViewport(0, 0, window_width, window_height);
+    glViewport(0, 0, window_width, window_height);
 
     glfwSetKeyCallback(window, Key_Callback);
 
@@ -174,20 +182,15 @@ int main(void)
 
     
     /* Loop until the user closes the window */
-    /*
-    glm::mat4 projectionMatrix = glm::perspective(
-        glm::radians(60.f),//fov
-        window_height/window_width,//aspect ratio
-        0.1f, //znear != 0
-        100.f //zfar
-    );
-  */
+
+   
+
+ 
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
        // z = z_mod;
-        
         glm::mat4 transformation_matrix = glm::translate(
             identity,
             glm::vec3(x, y, z)
@@ -205,8 +208,16 @@ int main(void)
             glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
         );
 
-        //unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
-        //glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+        glm::mat4 projectionMatrix = glm::perspective(
+            glm::radians(zoom),//fov
+            window_height / window_width,//aspect ratio
+            0.1f, //znear != 0
+            100.f //zfar
+        );
+
+       
+        unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
