@@ -18,6 +18,7 @@ void ShaderManager::LoadShader(std::string path, unsigned int shader_type) {
     glCompileShader(shader);
 
     glAttachShader(this->shaderProg, shader);
+
 }
 
 GLuint& ShaderManager::getShaderProg() { return this->shaderProg; }

@@ -145,6 +145,7 @@
     <ClCompile Include="ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="tiny_obj_loader.h" />

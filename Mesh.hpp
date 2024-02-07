@@ -1,14 +1,7 @@
 #pragma once
 
-
-#include <unordered_map>
-#include <vector>
-
 #include "ShaderManager.hpp"
 
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
 
 enum Transformation {
 	Translate,
@@ -17,8 +10,6 @@ enum Transformation {
 };
 
 class Mesh{
-
-	private:
 
 	private:
 
