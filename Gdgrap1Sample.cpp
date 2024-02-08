@@ -75,6 +75,7 @@ int main(void)
     
     gladLoadGL();
 
+    //
     int img_width;
     int img_height;
     int colorChannels;
@@ -86,6 +87,8 @@ int main(void)
         &img_height,
         &colorChannels,
         0);
+
+    ///
 
     glViewport(0, 0, window_width, window_height);
 
