@@ -1,14 +1,20 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh(std::string filename): 
-	translation(glm::vec3(0, 0, 0)),
-	scale(glm::vec3(1, 1, 1)),
-	rotation_axis(glm::vec3(0, 1, 0)),
-	theta(0.0f)
-{
-	
-	//Readingfor Mesh
+Mesh::Mesh(std::string filename){
 
+	this->translation = glm::vec3(0, 0, 0);
+	this->scale = glm::vec3(1, 1, 1);
+	this->rotation_axis = glm::vec3(0, 1, 0);
+	this->theta = 0.0f;
+
+	glGenVertexArrays(1, &this->obj["VAO"]); // line responsible for VAO
+	glGenBuffers(1, &this->obj["VBO"]); // line responsible for VBO
+	glGenBuffers(1, &this->obj["EBO"]);
+	
+
+	/******************/
+
+	//Readingfor Mesh
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> material;
 	std::string warning, error;
@@ -24,20 +30,15 @@ Mesh::Mesh(std::string filename):
 		filename.c_str()
 	);
 
-	//Preparing Buffer Objects
-	//get the EBO indices array
+	/******************/
+
 
 	for (auto i : shapes[0].mesh.indices) {
 		this->mesh_indices.push_back(i.vertex_index);
 	}
 
-	this->obj["VAO"];
-	this->obj["VBO"];
-	this->obj["EBO"];
-	glGenVertexArrays(1, &this->obj["VAO"]); // line responsible for VAO
-	glGenBuffers(1, &this->obj["VBO"]); // line responsible for VBO
-	glGenBuffers(1, &this->obj["EBO"]);
-
+	//Binding
+	
 	glBindVertexArray(this->obj["VAO"]); // assigns VAO currently being edited
 	glBindBuffer(GL_ARRAY_BUFFER, this->obj["VBO"]); // assigns VBO currently being edited and attaches VBO to VAO
 
@@ -68,9 +69,7 @@ Mesh::Mesh(std::string filename):
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 
 }
 
@@ -79,6 +78,7 @@ Mesh::~Mesh() {
 		glDeleteVertexArrays(1, &i.second);
 	}
 }
+
 void Mesh::Draw(ShaderManager& shader) {
 
 	glm::mat4 identity = glm::mat4(1.0f);

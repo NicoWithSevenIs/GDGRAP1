@@ -140,15 +140,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Gdgrap1Sample.cpp" />
-    <ClCompile Include="glad.c" />
+    <ClCompile Include="Model\glad.c" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="Model\Model3D\Model3D.cpp" />
+    <ClCompile Include="Model\ShaderManager\ShaderManager.cpp" />
+    <ClCompile Include="Model\TransformHandler\TransformHandler.cpp" />
+    <ClCompile Include="Controller\RenderManager\RenderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lib.hpp" />
+    <ClInclude Include="Model\Enum\Transform.hpp" />
+    <ClInclude Include="Model\lib.hpp" />
     <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="ShaderManager.hpp" />
-    <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="Model\Model3D\Model3D.hpp" />
+    <ClInclude Include="Model\ShaderManager\ShaderManager.hpp" />
+    <ClInclude Include="Model\tiny_obj_loader.h" />
+    <ClInclude Include="Model\TransformHandler\TransformHandler.hpp" />
+    <ClInclude Include="Controller\RenderManager\RenderManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="Shaders\shaders.vert">

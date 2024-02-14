@@ -1,5 +1,7 @@
 #include "ShaderManager.hpp"
 
+using namespace models;
+
 ShaderManager::ShaderManager():shaderProg(glCreateProgram()) {}
 
 void ShaderManager::LoadShader(std::string path, unsigned int shader_type) {

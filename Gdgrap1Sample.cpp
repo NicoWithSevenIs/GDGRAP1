@@ -29,12 +29,11 @@ int main(void)
     ShaderManager shader = ShaderManager();
     shader.LoadShader("Shaders/shaders.vert", GL_VERTEX_SHADER);
     shader.LoadShader("Shaders/shaders.frag", GL_FRAGMENT_SHADER);
-    glLinkProgram(shader.getShaderProg());
 
+    glLinkProgram(shader.getShaderProg());
 
     Mesh obj("3D/bunny.obj");
     
- 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
