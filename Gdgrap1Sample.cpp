@@ -82,7 +82,7 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    unsigned char* tex_bytes = stbi_load("3D/ayaya.png",
+    unsigned char* tex_bytes = stbi_load("3D/partenza.jpg",
         &img_width,
         &img_height,
         &colorChannels,
@@ -123,7 +123,7 @@ int main(void)
 
     glLinkProgram(shaderProg);
 
-    std::string path = "3D/myCube.obj";
+    std::string path = "3D/djSword.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -151,27 +151,87 @@ int main(void)
         0.f, 0.f
     };
 
-
+    std::vector<GLfloat> fullVertexData;
     //get the EBO indices array
-    std::vector<GLuint> mesh_indices;
+    //std::vector<GLuint> mesh_indices;
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
-        mesh_indices.push_back(
+        
+        tinyobj::index_t vData = shapes[0].mesh.indices[i];
+        /*mesh_indices.push_back(
             shapes[0].mesh.indices[i].vertex_index
-        );
+        );*/
+
+        fullVertexData.push_back(attributes.vertices[vData.vertex_index * 3]);
+        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3)+1]);
+        fullVertexData.push_back(attributes.vertices[vData.vertex_index * 3 + 2]);
+
+        fullVertexData.push_back(attributes.normals[vData.normal_index * 3]);
+        fullVertexData.push_back(attributes.normals[vData.normal_index * 3 + 1]);
+        fullVertexData.push_back(attributes.normals[vData.normal_index * 3 + 2]);
+
+        fullVertexData.push_back(attributes.texcoords[vData.texcoord_index * 2]);
+        fullVertexData.push_back(attributes.texcoords[vData.texcoord_index * 2 + 1]);
     }
 
-    GLuint VAO, VBO, EBO, VBO_UV;
+    GLuint VAO, VBO;
+    //, EBO, VBO_UV;
     glGenVertexArrays(1, &VAO); // line responsible for VAO
     glGenBuffers(1, &VBO); // line responsible for VBO
-    glGenBuffers(1, &EBO);
+    //glGenBuffers(1, &EBO);
 
-    glGenBuffers(1, &VBO_UV);
+    //glGenBuffers(1, &VBO_UV);
 
 
 
     glBindVertexArray(VAO); // assigns VAO currently being edited
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // assigns VBO currently being edited and attaches VBO to VAO
     
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * fullVertexData.size(),
+        fullVertexData.data(),
+        GL_DYNAMIC_DRAW
+    );
+
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*) 0
+    );
+
+
+    glEnableVertexAttribArray(0);
+
+    GLintptr normalptr = 3 * sizeof(float);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*) normalptr
+    );
+    glEnableVertexAttribArray(1);
+
+
+    GLintptr uvptr = 6 * sizeof(float);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)uvptr
+    );
+ 
+    glEnableVertexAttribArray(2);
+
+    
+    /*
     glBufferData(GL_ARRAY_BUFFER, 
         sizeof(GL_FLOAT) * attributes.vertices.size(), //size in bytes
         attributes.vertices.data(), //array
@@ -185,9 +245,9 @@ int main(void)
         3 * sizeof(float),
         (void*)0
     );
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
-    glBufferData(GL_ARRAY_BUFFER,
+    */
+    //glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
+    /*glBufferData(GL_ARRAY_BUFFER,
         sizeof(GLfloat) * sizeof(UV) / sizeof(UV[0]),
         &UV[0],
         GL_DYNAMIC_DRAW
@@ -209,17 +269,19 @@ int main(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * mesh_indices.size(),
-        mesh_indices.data(),
+        sizeof(GLuint) * fullVertexData.size(),
+        fullVertexData.data(),
         GL_STATIC_DRAW
     );
 
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    */
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     //unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
     //unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
@@ -246,7 +308,7 @@ int main(void)
         img_width,
         img_height,
         0,
-        GL_RGBA,
+        GL_RGB,
         GL_UNSIGNED_BYTE,
         tex_bytes
     );
@@ -342,7 +404,7 @@ int main(void)
             glm::radians(zoom),//fov
             window_height / window_width,//aspect ratio
             0.1f, //znear != 0
-            100.f //zfar
+            1000.f //zfar
         );
 
        
@@ -366,8 +428,8 @@ int main(void)
         /*put rendering stuff here*/
         glUseProgram(shaderProg);
         glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size()/8);
+        //glDrawElements(GL_TRIANGLES, fullVertexData.size(), GL_UNSIGNED_INT, 0);
         //DrawPentagon::draw(0.5f)
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -380,8 +442,8 @@ int main(void)
     /*Cleanup here*/
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteBuffers(1, &VBO_UV);
+    //glDeleteBuffers(1, &EBO);
+    //glDeleteBuffers(1, &VBO_UV);
     glfwTerminate();
     return 0;
 }
