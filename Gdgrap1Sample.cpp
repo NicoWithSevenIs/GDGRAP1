@@ -19,7 +19,7 @@
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0.f, y = 0.f, z = -5.0f;
-float scale_x = 5, scale_y =5, scale_z = 5;
+float scale_x = 1, scale_y =1, scale_z = 1;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
@@ -318,11 +318,11 @@ int main(void)
     glm::vec3 lightPos = glm::vec3(-10, 3, 0);
     glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
-    float ambientStr = 0.1f;
+    float ambientStr = 0.2f;
     glm::vec3 ambientColor = lightColor;
 
     float specStr = 0.1f;
-    float specPhong = 1.f;
+    float specPhong = 16;
 
 
     while (!glfwWindowShouldClose(window))
@@ -394,7 +394,7 @@ int main(void)
         glUniform1f(specStrAddress, specStr);
 
         GLuint specPhongAddress = glGetUniformLocation(shaderProg, "specPhong");
-        glUniform1f(specStrAddress, specPhong);
+        glUniform1f(specPhongAddress, specPhong);
         
 
        // glUniform1f(yLoc, y_mod);
