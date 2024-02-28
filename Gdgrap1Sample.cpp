@@ -19,7 +19,7 @@
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0.f, y = 0.f, z = -5.0f;
-float scale_x = 1, scale_y =1, scale_z = 1;
+float scale_x = 5, scale_y =5, scale_z = 5;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
@@ -289,72 +289,7 @@ int main(void)
  
     glEnableVertexAttribArray(2);
 
-    
-    /*
-    glBufferData(GL_ARRAY_BUFFER, 
-        sizeof(GL_FLOAT) * attributes.vertices.size(), //size in bytes
-        attributes.vertices.data(), //array
-        GL_STATIC_DRAW); // GL_STATIC_DRAW as the model doesn't move
 
-    glVertexAttribPointer(
-        0,
-        3, //x,y,z
-        GL_FLOAT,
-        GL_FALSE,
-        3 * sizeof(float),
-        (void*)0
-    );
-    */
-    //glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
-    /*glBufferData(GL_ARRAY_BUFFER,
-        sizeof(GLfloat) * sizeof(UV) / sizeof(UV[0]),
-        &UV[0],
-        GL_DYNAMIC_DRAW
-    );
-
-    glVertexAttribPointer(
-        2,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        2 * sizeof(GL_FLOAT),
-        (void*)0
-    );
-
-    glEnableVertexAttribArray(2);
-
-
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * fullVertexData.size(),
-        fullVertexData.data(),
-        GL_STATIC_DRAW
-    );
-
-    glEnableVertexAttribArray(0);
-
-    */
-
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    //unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
-    //unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
-
- 
-    /*glm::mat4 projectionMatrix = glm::ortho(
-        -4.f, //left
-        4.f, //right
-        -4.f, //bot
-        4.f, //top
-        -1.f, //znear
-        1.f //zfar
-    );
-    */
 
     GLuint texture;
     glGenTextures(1, &texture);
@@ -377,71 +312,25 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
 
-    /* Loop until the user closes the window */
-
-    //glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
-    //glm::vec3 center = glm::vec3(0, 5.f, 0);
+    
     
  
+    glm::vec3 lightPos = glm::vec3(-10, 3, 0);
+    glm::vec3 lightColor = glm::vec3(1, 1, 1);
+
+    float ambientStr = 0.1f;
+    glm::vec3 ambientColor = lightColor;
+
+    float specStr = 0.1f;
+    float specPhong = 1.f;
+
+
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        
-        //glm::vec3 camera(x_mod, 0, 10.f);
-      
-        /*
-        glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
-       
-        glm::vec3 F = glm::vec3(glm::normalize(center - camera));
-
-        glm::vec3 R = glm::vec3(glm::cross(F, worldUP));
-
-        glm::vec3 U = glm::normalize(glm::cross(R, F));
-
-        //ruf
-
-        std::vector<std::vector<float>> toMat = {
-            {R.x, R.y, R.z},
-            {U.x, U.y, U.z},
-            {F.x, F.y, F.z}
-        };
-        glm::mat4 cameraOrientation = glm::mat4(1.f);
-
-       
-        /*
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                cameraOrientation[j][i] = toMat[i][j];
-            }
-        }  
-        
-   
-        cameraOrientation[0][0] = R.x;
-        cameraOrientation[1][0] = R.y;
-        cameraOrientation[2][0] = R.z;
-
-        cameraOrientation[0][1] = U.x;
-        cameraOrientation[1][1] = U.y;
-        cameraOrientation[2][1] = U.z;
-
-        cameraOrientation[0][2] = -F.x;
-        cameraOrientation[1][2] = -F.y;
-        cameraOrientation[2][2] = -F.z;
-
-        glm::mat4 viewMatrix = cameraOrientation * camPos;
-        
-        */
-        
-        //glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
-        
-
-
-
-
-       // z = z_mod;
         glm::mat4 transformation_matrix = glm::translate(
             identity,
             glm::vec3(x, y, z)
@@ -481,6 +370,33 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, texture);
         glUniform1i(tex0Address, 0);
 
+        GLuint lightAddress = glGetUniformLocation(shaderProg, "lightPos");
+        glUniform3fv(lightAddress, 1, glm::value_ptr(lightPos));
+
+        GLuint lightColorAddress = glad_glGetUniformLocation(shaderProg, "lightColor");
+        glUniform3fv(lightColorAddress, 1, glm::value_ptr(lightColor));
+
+        
+       
+        GLuint ambientStrAddress = glGetUniformLocation(shaderProg, "ambientStr");
+        glUniform1f(ambientStrAddress, ambientStr);
+
+        GLuint ambientColorAddress = glGetUniformLocation(shaderProg, "ambientColor");
+        glUniform3fv(ambientColorAddress, 1, glm::value_ptr(ambientColor));
+
+       
+       
+
+        GLuint cameraPosAddress = glGetUniformLocation(shaderProg, "cameraPos");
+        glUniform3fv(cameraPosAddress, 1, glm::value_ptr(cameraPos));
+
+        GLuint specStrAddress = glGetUniformLocation(shaderProg, "specStr");
+        glUniform1f(specStrAddress, specStr);
+
+        GLuint specPhongAddress = glGetUniformLocation(shaderProg, "specPhong");
+        glUniform1f(specStrAddress, specPhong);
+        
+
        // glUniform1f(yLoc, y_mod);
 
         /*put rendering stuff here*/
@@ -505,3 +421,132 @@ int main(void)
     glfwTerminate();
     return 0;
 }
+
+
+/*
+glBufferData(GL_ARRAY_BUFFER,
+    sizeof(GL_FLOAT) * attributes.vertices.size(), //size in bytes
+    attributes.vertices.data(), //array
+    GL_STATIC_DRAW); // GL_STATIC_DRAW as the model doesn't move
+
+glVertexAttribPointer(
+    0,
+    3, //x,y,z
+    GL_FLOAT,
+    GL_FALSE,
+    3 * sizeof(float),
+    (void*)0
+);
+*/
+//glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
+/*glBufferData(GL_ARRAY_BUFFER,
+    sizeof(GLfloat) * sizeof(UV) / sizeof(UV[0]),
+    &UV[0],
+    GL_DYNAMIC_DRAW
+);
+
+glVertexAttribPointer(
+    2,
+    2,
+    GL_FLOAT,
+    GL_FALSE,
+    2 * sizeof(GL_FLOAT),
+    (void*)0
+);
+
+glEnableVertexAttribArray(2);
+
+
+
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+    sizeof(GLuint) * fullVertexData.size(),
+    fullVertexData.data(),
+    GL_STATIC_DRAW
+);
+
+glEnableVertexAttribArray(0);
+
+*/
+
+//glBindBuffer(GL_ARRAY_BUFFER, 0);
+//glBindVertexArray(0);
+
+//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+//unsigned int xLoc = glGetUniformLocation(shaderProg, "x");
+//unsigned int yLoc = glGetUniformLocation(shaderProg, "y");
+
+
+/*glm::mat4 projectionMatrix = glm::ortho(
+    -4.f, //left
+    4.f, //right
+    -4.f, //bot
+    4.f, //top
+    -1.f, //znear
+    1.f //zfar
+);
+*/
+
+
+/* Loop until the user closes the window */
+
+    //glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
+    //glm::vec3 center = glm::vec3(0, 5.f, 0);
+
+//glm::vec3 camera(x_mod, 0, 10.f);
+
+
+
+/*
+*
+*
+glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
+
+glm::vec3 F = glm::vec3(glm::normalize(center - camera));
+
+glm::vec3 R = glm::vec3(glm::cross(F, worldUP));
+
+glm::vec3 U = glm::normalize(glm::cross(R, F));
+
+//ruf
+
+std::vector<std::vector<float>> toMat = {
+    {R.x, R.y, R.z},
+    {U.x, U.y, U.z},
+    {F.x, F.y, F.z}
+};
+glm::mat4 cameraOrientation = glm::mat4(1.f);
+
+
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+        cameraOrientation[j][i] = toMat[i][j];
+    }
+}
+
+
+cameraOrientation[0][0] = R.x;
+cameraOrientation[1][0] = R.y;
+cameraOrientation[2][0] = R.z;
+
+cameraOrientation[0][1] = U.x;
+cameraOrientation[1][1] = U.y;
+cameraOrientation[2][1] = U.z;
+
+cameraOrientation[0][2] = -F.x;
+cameraOrientation[1][2] = -F.y;
+cameraOrientation[2][2] = -F.z;
+
+glm::mat4 viewMatrix = cameraOrientation * camPos;
+
+*/
+
+//glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
+
+
+
+
+
+// z = z_mod;
