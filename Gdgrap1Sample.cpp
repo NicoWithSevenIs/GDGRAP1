@@ -25,6 +25,8 @@ float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
 float x_mod = 0.f;
 
+float cameraSpeed = 2.f; // adjust accordingly
+
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -34,7 +36,7 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         return;
     }
 
-    const float cameraSpeed = 0.1f; // adjust accordingly
+   
     switch (key) {
 
     case GLFW_KEY_W:
@@ -143,9 +145,13 @@ int main(void)
 
     ///
 
+
     glViewport(0, 0, window_width, window_height);
 
     glfwSetKeyCallback(window, Key_Callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     std::fstream vertSrc("Shaders/shaders.vert");
 
