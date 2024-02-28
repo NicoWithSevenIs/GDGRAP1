@@ -25,28 +25,81 @@ float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
 float x_mod = 0.f;
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action != GLFW_PRESS)
+    if (action == GLFW_RELEASE) {
         return;
+    }
 
+    const float cameraSpeed = 0.1f; // adjust accordingly
     switch (key) {
-        case GLFW_KEY_W: y += 0.1f;  break;
-        case GLFW_KEY_A: x -= 0.1f; break;
-        case GLFW_KEY_S: y -= 0.1f;  break;
-        case GLFW_KEY_D: x += 0.1f; break;
-        
-        
-        case GLFW_KEY_Q: scale_x += 0.3f; scale_y += 0.3f; scale_z += 0.3f;  break;
-        case GLFW_KEY_E: scale_x -= 0.3f; scale_y -= 0.3f; scale_z -= 0.3f;  break;
 
-        case GLFW_KEY_LEFT: theta -= 15.f; break;
-        case GLFW_KEY_RIGHT: theta += 15.f; break;
+    case GLFW_KEY_W:
+        cameraPos += cameraSpeed * cameraFront;
+        break;
+    case GLFW_KEY_A:
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        break;
+    case GLFW_KEY_S:
+        cameraPos -= cameraSpeed * cameraFront;
+        break;
+    case GLFW_KEY_D:
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        break;
 
-        case GLFW_KEY_Z: zoom -= 10.f; break;
-        case GLFW_KEY_X: zoom += 10.f; break;
+    case GLFW_KEY_F: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); break;
+    case GLFW_KEY_Q: scale_x += 0.3f; scale_y += 0.3f; scale_z += 0.3f;  break;
+    case GLFW_KEY_E: scale_x -= 0.3f; scale_y -= 0.3f; scale_z -= 0.3f;  break;
+
+    case GLFW_KEY_LEFT: theta -= 15.f; break;
+    case GLFW_KEY_RIGHT: theta += 15.f; break;
+
+    case GLFW_KEY_Z: zoom -= 10.f; break;
+    case GLFW_KEY_X: zoom += 10.f; break;
     }
 }
 
+bool firstMouse = true;
+float lastX = 500, lastY = 300;
+float yaw = -90, pitch = 0;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
+}
 
 int main(void)
 {
