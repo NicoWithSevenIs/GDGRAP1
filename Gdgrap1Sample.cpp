@@ -25,17 +25,34 @@ float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
 float x_mod = 0.f;
 
-void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action != GLFW_PRESS)
-        return;
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_RELEASE) {
+        
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        return;
+    }
+        
+    const float cameraSpeed = 0.1f; // adjust accordingly
     switch (key) {
-        case GLFW_KEY_W: y += 0.1f;  break;
-        case GLFW_KEY_A: x -= 0.1f; break;
-        case GLFW_KEY_S: y -= 0.1f;  break;
-        case GLFW_KEY_D: x += 0.1f; break;
         
-        
+        case GLFW_KEY_W: 
+            cameraPos += cameraSpeed * cameraFront;
+        break;
+        case GLFW_KEY_A: 
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        break;
+        case GLFW_KEY_S: 
+            cameraPos -= cameraSpeed * cameraFront;
+        break;
+        case GLFW_KEY_D: 
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        break;
+
+        case GLFW_KEY_F: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); break;
         case GLFW_KEY_Q: scale_x += 0.3f; scale_y += 0.3f; scale_z += 0.3f;  break;
         case GLFW_KEY_E: scale_x -= 0.3f; scale_y -= 0.3f; scale_z -= 0.3f;  break;
 
@@ -45,6 +62,45 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_Z: zoom -= 10.f; break;
         case GLFW_KEY_X: zoom += 10.f; break;
     }
+}
+
+bool firstMouse = true;
+float lastX = 500, lastY = 300;
+float yaw = -90, pitch = 0;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+
+    
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
 }
 
 
@@ -93,6 +149,9 @@ int main(void)
     glViewport(0, 0, window_width, window_height);
 
     glfwSetKeyCallback(window, Key_Callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     std::fstream vertSrc("Shaders/shaders.vert");
 
@@ -258,6 +317,8 @@ int main(void)
 
     /* Loop until the user closes the window */
 
+
+    //Camera
     glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
     glm::vec3 center = glm::vec3(0, 5.f, 0);
     
@@ -267,90 +328,26 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-        
-        glm::vec3 camera(x_mod, 0, 10.f);
-      
-        /*
-        glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
-       
-        glm::vec3 F = glm::vec3(glm::normalize(center - camera));
-
-        glm::vec3 R = glm::vec3(glm::cross(F, worldUP));
-
-        glm::vec3 U = glm::normalize(glm::cross(R, F));
-
-        //ruf
-
-        std::vector<std::vector<float>> toMat = {
-            {R.x, R.y, R.z},
-            {U.x, U.y, U.z},
-            {F.x, F.y, F.z}
-        };
-        glm::mat4 cameraOrientation = glm::mat4(1.f);
-
-       
-        /*
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                cameraOrientation[j][i] = toMat[i][j];
-            }
-        }  
-        
    
-        cameraOrientation[0][0] = R.x;
-        cameraOrientation[1][0] = R.y;
-        cameraOrientation[2][0] = R.z;
 
-        cameraOrientation[0][1] = U.x;
-        cameraOrientation[1][1] = U.y;
-        cameraOrientation[2][1] = U.z;
+        glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-        cameraOrientation[0][2] = -F.x;
-        cameraOrientation[1][2] = -F.y;
-        cameraOrientation[2][2] = -F.z;
+        glm::mat4 projectionMatrix = glm::perspective(glm::radians(zoom), window_height / window_width, 0.1f, 100.f);
 
-        glm::mat4 viewMatrix = cameraOrientation * camPos;
-        
-        */
-        
-        glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
-        
-
-
-
-
-       // z = z_mod;
-        glm::mat4 transformation_matrix = glm::translate(
-            identity,
-            glm::vec3(x, y, z)
-        );
-
-        transformation_matrix = glm::scale(
-            transformation_matrix,
-            glm::vec3(scale_x, scale_y, scale_z)
-        );
-
-        theta += 0.025;
-        transformation_matrix = glm::rotate(
-            transformation_matrix,
-            glm::radians(theta),
-            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
-        );
-
-        glm::mat4 projectionMatrix = glm::perspective(
-            glm::radians(zoom),//fov
-            window_height / window_width,//aspect ratio
-            0.1f, //znear != 0
-            100.f //zfar
-        );
-
-       
         unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         unsigned int viewLoc = glGetUniformLocation(shaderProg, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+
+
+       // z = z_mod;
+        glm::mat4 transformation_matrix = glm::translate(identity,glm::vec3(x, y, z));
+        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x, scale_y, scale_z));
+        theta += 0.025;
+        transformation_matrix = glm::rotate(transformation_matrix,glm::radians(theta),glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
+
 
         unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
@@ -385,3 +382,45 @@ int main(void)
     glfwTerminate();
     return 0;
 }
+/*
+       glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
+
+       glm::vec3 F = glm::vec3(glm::normalize(center - camera));
+
+       glm::vec3 R = glm::vec3(glm::cross(F, worldUP));
+
+       glm::vec3 U = glm::normalize(glm::cross(R, F));
+
+       //ruf
+
+       std::vector<std::vector<float>> toMat = {
+           {R.x, R.y, R.z},
+           {U.x, U.y, U.z},
+           {F.x, F.y, F.z}
+       };
+       glm::mat4 cameraOrientation = glm::mat4(1.f);
+
+
+       /*
+       for (int i = 0; i < 3; i++) {
+           for (int j = 0; j < 3; j++) {
+               cameraOrientation[j][i] = toMat[i][j];
+           }
+       }
+
+
+       cameraOrientation[0][0] = R.x;
+       cameraOrientation[1][0] = R.y;
+       cameraOrientation[2][0] = R.z;
+
+       cameraOrientation[0][1] = U.x;
+       cameraOrientation[1][1] = U.y;
+       cameraOrientation[2][1] = U.z;
+
+       cameraOrientation[0][2] = -F.x;
+       cameraOrientation[1][2] = -F.y;
+       cameraOrientation[2][2] = -F.z;
+
+       glm::mat4 viewMatrix = cameraOrientation * camPos;
+
+       */
