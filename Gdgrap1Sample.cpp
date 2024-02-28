@@ -373,8 +373,8 @@ int main(void)
 
     /* Loop until the user closes the window */
 
-    glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
-    glm::vec3 center = glm::vec3(0, 5.f, 0);
+    //glm::vec3 worldUP = glm::vec3(0, 1.f, 0);
+    //glm::vec3 center = glm::vec3(0, 5.f, 0);
     
  
     while (!glfwWindowShouldClose(window))
@@ -384,7 +384,7 @@ int main(void)
 
 
         
-        glm::vec3 camera(x_mod, 0, 10.f);
+        //glm::vec3 camera(x_mod, 0, 10.f);
       
         /*
         glm::mat4 camPos = glm::translate(glm::mat4(1.0f), camera * -1.0f);
@@ -429,7 +429,7 @@ int main(void)
         
         */
         
-        glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
+        //glm::mat4 viewMatrix = glm::lookAt(camera, center, worldUP);
         
 
 
@@ -453,19 +453,18 @@ int main(void)
             glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
         );
 
-        glm::mat4 projectionMatrix = glm::perspective(
-            glm::radians(zoom),//fov
-            window_height / window_width,//aspect ratio
-            0.1f, //znear != 0
-            1000.f //zfar
-        );
+        glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-       
+        glm::mat4 projectionMatrix = glm::perspective(glm::radians(zoom), window_height / window_width, 0.1f, 100.f);
+
         unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         unsigned int viewLoc = glGetUniformLocation(shaderProg, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+
+
 
         unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
