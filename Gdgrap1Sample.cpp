@@ -151,7 +151,6 @@ float yaw = -90, pitch = 0;
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 
-
     if (firstMouse)
     {
         lastX = xpos;
@@ -233,6 +232,42 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
+
+    //Skybox*******
+    std::fstream skyboxVertSrc("Shaders/skybox.vert");
+    std::stringstream skyboxVertBuff;
+    skyboxVertBuff << skyboxVertSrc.rdbuf();
+
+    std::string skyboxVertS = skyboxVertBuff.str();
+    const char* sv = skyboxVertS.c_str();
+
+    std::fstream skyboxFragSrc("Shaders/skybox.frag");
+    std::stringstream skyboxFragBuff;
+    skyboxFragBuff << skyboxFragSrc.rdbuf();
+
+    std::string skyboxFragS = skyboxFragBuff.str();
+    const char* sf = skyboxFragS.c_str();
+
+
+    GLuint skyboxVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(skyboxVertexShader, 1, &sv, NULL);
+    glCompileShader(skyboxVertexShader);
+
+    GLuint skyboxFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(skyboxFragShader, 1, &sf, NULL);
+    glCompileShader(skyboxFragShader);
+
+    GLuint skyboxShaderProg = glCreateProgram();
+    glAttachShader(skyboxShaderProg, skyboxVertexShader);
+    glAttachShader(skyboxShaderProg, skyboxFragShader);
+
+    glLinkProgram(skyboxShaderProg);
+    glDeleteShader(skyboxVertexShader);
+    glDeleteShader(skyboxFragShader);
+
+    //*********************
+
+
     std::fstream vertSrc("Shaders/shaders.vert");
 
     std::stringstream vertBuff;
@@ -248,6 +283,8 @@ int main(void)
     std::string fragS = fragBuff.str();
     const char* f = fragS.c_str();
 
+
+
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &v, NULL);
     glCompileShader(vertexShader);
@@ -261,6 +298,10 @@ int main(void)
     glAttachShader(shaderProg, fragShader);
 
     glLinkProgram(shaderProg);
+
+
+
+
 
     std::string path = "3D/djSword.obj";
     std::vector<tinyobj::shape_t> shapes;
@@ -407,22 +448,169 @@ int main(void)
     float smallSpecStr = 0.1f;
     float bigSpecStr = 6.f;
 
+    /*
+              7--------6
+             /|       /|
+            4--------5 |
+            | |      | |
+            | 3------|-2
+            |/       |/
+            0--------1
+        */
+        //Vertices for the cube
+    float skyboxVertices[]{
+        -1.f, -1.f, 1.f, //0
+        1.f, -1.f, 1.f,  //1
+        1.f, -1.f, -1.f, //2
+        -1.f, -1.f, -1.f,//3
+        -1.f, 1.f, 1.f,  //4
+        1.f, 1.f, 1.f,   //5
+        1.f, 1.f, -1.f,  //6
+        -1.f, 1.f, -1.f  //7
+    };
+
+    //Skybox Indices
+    unsigned int skyboxIndices[]{
+        1,2,6,
+        6,5,1,
+
+        0,4,7,
+        7,3,0,
+
+        4,5,6,
+        6,7,4,
+
+        0,3,2,
+        2,1,0,
+
+        0,1,5,
+        5,4,0,
+
+        3,7,6,
+        6,2,3
+    };
+
+
+    unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glGenBuffers(1, &skyboxEBO);
+
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GL_INT) * 36, &skyboxIndices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+
+    //Faces of the skybox
+    //This is to easily load it later 
+    std::string facesSkybox[]{
+        "Skybox/rainbow_rt.png", //Right 
+        "Skybox/rainbow_lf.png", //Left 
+        "Skybox/rainbow_up.png", //Up
+        "Skybox/rainbow_dn.png", //Down
+        "Skybox/rainbow_ft.png", //Front 
+        "Skybox/rainbow_bk.png" //Back
+    };
+
+    unsigned int skyboxTex;
+
+    glGenTextures(1, &skyboxTex);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    
+
+    for (unsigned int i = 0; i < 6; i++) {
+
+        int w, h, skyChannel;
+        stbi_set_flip_vertically_on_load(false);
+        unsigned char* data = stbi_load(facesSkybox[i].c_str(), &w, &h, &skyChannel, 0);
+
+        if (data) {
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0,
+                GL_RGB,
+                w,
+                h,
+                0,
+                GL_RGB,
+                GL_UNSIGNED_BYTE,
+                data
+            );
+            stbi_image_free(data);
+        }
+        else {
+            std::cout << "Failed to load texture: " << facesSkybox[i] << std::endl;
+        }
+
+    }
+
+    stbi_set_flip_vertically_on_load(true);
 
     while (!glfwWindowShouldClose(window))
     {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 lightPos = glm::vec3(lightX, lightY, lightZ);
-        glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        #pragma region peepee2
 
+       
+
+        glm::vec3 lightPos = glm::vec3(lightX, lightY, lightZ);
+
+        glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(zoom), window_height / window_width, 0.1f, 100.f);
+
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProg, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         unsigned int viewLoc = glGetUniformLocation(shaderProg, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+       
+
+
+
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+
+        glUseProgram(skyboxShaderProg);
+
+        glm::mat4 sky_view = glm::mat4(1.f);
+        sky_view = glm::mat4(glm::mat3(viewMatrix));
+
+        unsigned int skyboxViewLoc = glGetUniformLocation(skyboxShaderProg, "view");
+        glUniformMatrix4fv(skyboxViewLoc, 1, GL_FALSE, glm::value_ptr(sky_view));
+
+        unsigned int skyboxProjectionLoc = glGetUniformLocation(skyboxShaderProg, "projection");
+        glUniformMatrix4fv(skyboxProjectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT,0);
+
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+
+        glUseProgram(shaderProg);
+       
 
 
 
@@ -433,16 +621,11 @@ int main(void)
         GLuint lightColorAddress = glad_glGetUniformLocation(shaderProg, "lightColor");
         glUniform3fv(lightColorAddress, 1, glm::value_ptr(lightColor));
 
-
-
         GLuint ambientStrAddress = glGetUniformLocation(shaderProg, "ambientStr");
         glUniform1f(ambientStrAddress, ambientStr);
 
         GLuint ambientColorAddress = glGetUniformLocation(shaderProg, "ambientColor");
         glUniform3fv(ambientColorAddress, 1, glm::value_ptr(ambientColor));
-
-
-
 
         GLuint baseConstantAddress = glGetUniformLocation(shaderProg, "baseConstant");
         glUniform1f(baseConstantAddress, 1.0f);
@@ -464,26 +647,15 @@ int main(void)
         GLuint multQuadraticAdderess = glGetUniformLocation(shaderProg, "multQuadratic");
         glUniform1f(multQuadraticAdderess, qX);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        
+        
         GLuint cameraPosAddress = glGetUniformLocation(shaderProg, "cameraPos");
         glUniform3fv(cameraPosAddress, 1, glm::value_ptr(cameraPos));
 
-       
-
         GLuint specPhongAddress = glGetUniformLocation(shaderProg, "specPhong");
         glUniform1f(specPhongAddress, specPhong);
+
+
 
 
         GLuint tex0Address = glGetUniformLocation(shaderProg, "tex0");
@@ -549,7 +721,7 @@ int main(void)
 
             
       
-        
+ 
         //glDrawElements(GL_TRIANGLES, fullVertexData.size(), GL_UNSIGNED_INT, 0);
         //DrawPentagon::draw(0.5f)
         /* Swap front and back buffers */
@@ -558,6 +730,7 @@ int main(void)
 
         /* Poll for and process events */
         glfwPollEvents();
+    #pragma endregion peepee2
     }
 
     /*Cleanup here*/
