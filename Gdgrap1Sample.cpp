@@ -15,11 +15,14 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
-float x = 0.f, y = 0.f, z = -5.0f;
-float scale_x = 1, scale_y =1, scale_z = 1;
+float x = 0.f, y = 0.f, z = 0.0f;
+
+float newZ = 5.0f;
+float scale_x = 0.25f, scale_y = 0.25f, scale_z = 0.25f;
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
 float zoom = 60.f;
@@ -30,6 +33,27 @@ float cameraSpeed = 2.f; // adjust accordingly
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+std::vector<glm::vec3> sizes = {
+    glm::vec3(0.1f, 0.1f, 0.1f),
+    glm::vec3(0.2f, 0.2f, 0.2f),
+    glm::vec3(0.2f, 0.2f, 0.2f),
+    glm::vec3(0.1f, 0.1f, 0.1f)
+
+};
+
+float lightX = 5.f;
+float lightY = 4.f;
+float lightZ = 0.f;
+
+float ambientStr = 0.2f;
+
+
+float cX = 1.0f;
+float lX = 1.0f;
+float qX = 1.0f;
+
+
 
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_RELEASE) {
@@ -50,6 +74,62 @@ void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mod
         break;
     case GLFW_KEY_D:
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        break;
+
+    case GLFW_KEY_R:
+        newZ += 3;
+       break;
+    case GLFW_KEY_T:
+        newZ -= 3;
+        break;
+
+    case GLFW_KEY_I:
+        lightZ += 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+    case GLFW_KEY_J:
+        lightX-= 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+    case GLFW_KEY_K:
+        lightZ -= 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+    case GLFW_KEY_L:
+        lightX += 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+
+    case GLFW_KEY_U:
+        lightY += 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+    case GLFW_KEY_O:
+        lightY -= 1.f;
+        std::cout << "{ " << lightX << "," << lightY << "," << lightZ << "," << " }" << std::endl;
+        break;
+
+
+    case GLFW_KEY_1:
+        cX += 0.01f;
+        break;
+    case GLFW_KEY_2:
+        cX = std::min(0.1f, cX - 0.01f);
+        break;
+
+    case GLFW_KEY_3:
+        lX += 0.01f;
+        break;
+    case GLFW_KEY_4:
+        lX = std::min(0.0001f, lX - 0.01f);
+        break;
+
+
+    case GLFW_KEY_5:
+        qX += 0.001f;
+        break;
+    case GLFW_KEY_6:
+        qX = std::min(0.00001f, qX - 0.001f);
         break;
 
     case GLFW_KEY_F: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); break;
@@ -105,7 +185,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 int main(void)
 {
-
+    #pragma region peepee
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -313,41 +393,27 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     
-    
+    #pragma endregion peepee
  
-    glm::vec3 lightPos = glm::vec3(-10, 3, 0);
+  
     glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
-    float ambientStr = 0.2f;
+ 
     glm::vec3 ambientColor = lightColor;
 
     float specStr = 0.1f;
-    float specPhong = 16;
+    float specPhong = 20;
+
+    float smallSpecStr = 0.1f;
+    float bigSpecStr = 6.f;
 
 
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-        glm::mat4 transformation_matrix = glm::translate(
-            identity,
-            glm::vec3(x, y, z)
-        );
-
-        transformation_matrix = glm::scale(
-            transformation_matrix,
-            glm::vec3(scale_x, scale_y, scale_z)
-        );
-
-        theta += 0.025;
-        transformation_matrix = glm::rotate(
-            transformation_matrix,
-            glm::radians(theta),
-            glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
-        );
-
+        glm::vec3 lightPos = glm::vec3(lightX, lightY, lightZ);
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(zoom), window_height / window_width, 0.1f, 100.f);
@@ -361,48 +427,129 @@ int main(void)
 
 
 
-        unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
-       
-        //glUniform1f(xLoc, x_mod);
-
-        GLuint tex0Address = glGetUniformLocation(shaderProg, "tex0");
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glUniform1i(tex0Address, 0);
-
         GLuint lightAddress = glGetUniformLocation(shaderProg, "lightPos");
         glUniform3fv(lightAddress, 1, glm::value_ptr(lightPos));
 
         GLuint lightColorAddress = glad_glGetUniformLocation(shaderProg, "lightColor");
         glUniform3fv(lightColorAddress, 1, glm::value_ptr(lightColor));
 
-        
-       
+
+
         GLuint ambientStrAddress = glGetUniformLocation(shaderProg, "ambientStr");
         glUniform1f(ambientStrAddress, ambientStr);
 
         GLuint ambientColorAddress = glGetUniformLocation(shaderProg, "ambientColor");
         glUniform3fv(ambientColorAddress, 1, glm::value_ptr(ambientColor));
 
-       
-       
+
+
+
+        GLuint baseConstantAddress = glGetUniformLocation(shaderProg, "baseConstant");
+        glUniform1f(baseConstantAddress, 1.0f);
+
+        GLuint baseLinearAddress = glGetUniformLocation(shaderProg, "baseLinear");
+        glUniform1f(baseLinearAddress, 0.027f);
+
+        GLuint baseQuadraticAddress = glGetUniformLocation(shaderProg, "baseQuadratic");
+        glUniform1f(baseQuadraticAddress, 0.0028);
+
+
+
+        GLuint multConstantAddress = glGetUniformLocation(shaderProg, "multConstant");
+        glUniform1f(multConstantAddress, cX);
+
+        GLuint multLinearAddress = glGetUniformLocation(shaderProg, "multLinear");
+        glUniform1f(multLinearAddress, lX);
+
+        GLuint multQuadraticAdderess = glGetUniformLocation(shaderProg, "multQuadratic");
+        glUniform1f(multQuadraticAdderess, qX);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         GLuint cameraPosAddress = glGetUniformLocation(shaderProg, "cameraPos");
         glUniform3fv(cameraPosAddress, 1, glm::value_ptr(cameraPos));
 
-        GLuint specStrAddress = glGetUniformLocation(shaderProg, "specStr");
-        glUniform1f(specStrAddress, specStr);
+       
 
         GLuint specPhongAddress = glGetUniformLocation(shaderProg, "specPhong");
         glUniform1f(specPhongAddress, specPhong);
+
+
+        GLuint tex0Address = glGetUniformLocation(shaderProg, "tex0");
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(tex0Address, 0);
+
+        for (int i = 0; i < 5; i++) {
+            
+            
+
+         
+            glm::mat4 transformation_matrix = glm::translate(
+                identity,
+                glm::vec3(x+i*3, y, i%2 ? newZ : z)
+            );
+
+            transformation_matrix = glm::scale(
+                transformation_matrix,
+                sizes[i]
+            );
+
+            theta += 0.025;
+            transformation_matrix = glm::rotate(
+                transformation_matrix,
+                glm::radians(theta),
+                glm::normalize(glm::vec3(axis_x, axis_y, axis_z))
+            );
+
+
+            if (i==4) {
+                
+
+               transformation_matrix = glm::translate(
+                    identity,
+                    lightPos
+                );
+
+                transformation_matrix = glm::scale(
+                    transformation_matrix,
+                    glm::vec3(0.01f, 0.01f, 0.01f)
+                );
+
+
+            }
+
+
+            
+
+            unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
+
+            specStr = i % 2 ? smallSpecStr : bigSpecStr;
+
+            GLuint specStrAddress = glGetUniformLocation(shaderProg, "specStr");
+            glUniform1f(specStrAddress, specStr);
+
+            glUseProgram(shaderProg);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
+
+
+        }
+
+            
+      
         
-
-       // glUniform1f(yLoc, y_mod);
-
-        /*put rendering stuff here*/
-        glUseProgram(shaderProg);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size()/8);
         //glDrawElements(GL_TRIANGLES, fullVertexData.size(), GL_UNSIGNED_INT, 0);
         //DrawPentagon::draw(0.5f)
         /* Swap front and back buffers */

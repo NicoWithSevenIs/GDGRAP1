@@ -1,3 +1,5 @@
+//Point Light
+
 #version 330 core
 
 out vec4 FragColor;
@@ -10,17 +12,21 @@ uniform vec3 lightColor;
 
 
 uniform float ambientStr;
-
 uniform vec3 ambientColor;
 
 
 uniform vec3 cameraPos;
-
 uniform float specStr;
-
 uniform float specPhong;
 
 
+uniform float baseConstant;
+uniform float baseLinear;
+uniform float baseQuadratic;
+
+uniform float multConstant;
+uniform float multLinear;
+uniform float multQuadratic;
 
 in vec2 texCoord;
 
@@ -30,11 +36,19 @@ in vec3 fragPos;
 
 void main()
 {
-	//FragColor = vec4(0.0f , 1.0f , 1.0f, 1.0f);
+	
+	/*
+	
+		References:
+				https://learnopengl.com/Lighting/Light-casters
+				https://learnopengl.com/Lighting/Multiple-lights
 
+	
+	*/
 
 	vec3 normal = normalize(normCoord);
 
+	//light pos is modified in the main file
 	vec3 lightDir = normalize(lightPos - fragPos);
 
 	float diff = max(dot(normal, lightDir), 0.0);
@@ -49,6 +63,33 @@ void main()
 	float spec = pow(max(dot(reflectDir, viewDir), 0.1), specPhong);
 
 	vec3 specColor = spec * specStr * lightColor;
+
+	float distance = length(lightPos - fragPos);
+
+
+	/*
+	
+		default values are configured in main.cpp
+
+		Kc = 1.0f
+		Kl = 0.027
+		Kq = 0.0028
+
+	*/
+
+	//computing attenuation, light intensity manipulation also happens here
+
+	float constant = baseConstant * multConstant;
+	float linear = baseLinear * multLinear;
+	float quadratic = baseQuadratic * multQuadratic;
+
+
+	float attenuation = constant + linear * distance + quadratic * (distance * distance);
+	float luminosity = 1.0f / attenuation; 
+
+	specColor *= luminosity;
+	diffuse *= luminosity;
+	ambientCol *= luminosity;
 
 
 	FragColor = vec4(specColor + diffuse + ambientCol,1.0) * texture(tex0, texCoord);
