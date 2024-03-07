@@ -30,12 +30,13 @@ in vec3 fragPos;
 
 void main()
 {
-	//FragColor = vec4(0.0f , 1.0f , 1.0f, 1.0f);
 
 
 	vec3 normal = normalize(normCoord);
 
-	vec3 lightDir = normalize(lightPos - fragPos);
+
+	//directional lighting
+	vec3 lightDir = normalize(-lightPos);
 
 	float diff = max(dot(normal, lightDir), 0.0);
 
