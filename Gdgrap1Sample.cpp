@@ -17,28 +17,34 @@
 #include <string>
 #include <algorithm>
 
+#include <functional>
 float z_mod = 0;
 glm::mat4 identity = glm::mat4(1.0f);
 float x = 0.f, y = 0.f, z = 0.0f;
 
 float newZ = 5.0f;
 float scale_x = 0.25f, scale_y = 0.25f, scale_z = 0.25f;
+
 float theta = 90;
 float axis_x = 0, axis_y = 1, axis_z = 0;
+
+float fixed_theta = 90;
+float axis_x2 = 0, axis_y2 = 0, axis_z2 = -1;
+
 float zoom = 60.f;
 float x_mod = 0.f;
 
-float cameraSpeed = 2.f; // adjust accordingly
+float cameraSpeed = 1.f; // adjust accordingly
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 std::vector<glm::vec3> sizes = {
-    glm::vec3(0.1f, 0.1f, 0.1f),
-    glm::vec3(0.2f, 0.2f, 0.2f),
-    glm::vec3(0.2f, 0.2f, 0.2f),
-    glm::vec3(0.1f, 0.1f, 0.1f)
+    glm::vec3(1.1f, 1.1f, 1.1f),
+    glm::vec3(1.2f, 1.2f, 1.2f),
+    glm::vec3(1.2f, 1.2f, 1.2f),
+    glm::vec3(1.1f, 1.1f, 1.1f)
 
 };
 
@@ -53,7 +59,7 @@ float cX = 1.0f;
 float lX = 1.0f;
 float qX = 1.0f;
 
-
+//void runThrice(std::function<void()>)
 
 void Key_Callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_RELEASE) {
@@ -216,7 +222,7 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    unsigned char* tex_bytes = stbi_load("3D/partenza.jpg",
+    unsigned char* tex_bytes = stbi_load("3D/brickwall.jpg",
         &img_width,
         &img_height,
         &colorChannels,
@@ -224,6 +230,24 @@ int main(void)
 
     ///
 
+
+    //
+    int img_width2;
+    int img_height2;
+    int colorChannels2;
+
+
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* normal_bytes = stbi_load("3D/brickwall_normal.jpg",
+        &img_width2,
+        &img_height2,
+        &colorChannels2,
+        0);
+
+    ///
+
+
+   
 
     glViewport(0, 0, window_width, window_height);
 
@@ -303,7 +327,7 @@ int main(void)
 
 
 
-    std::string path = "3D/djSword.obj";
+    std::string path = "3D/plane.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -331,6 +355,75 @@ int main(void)
         0.f, 0.f
     };
 
+
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+
+
+    for (int i = 0; i < shapes[0].mesh.indices.size(); i += 3) {
+        tinyobj::index_t vData1 = shapes[0].mesh.indices[i];
+        tinyobj::index_t vData2 = shapes[0].mesh.indices[i + 1];
+        tinyobj::index_t vData3 = shapes[0].mesh.indices[i + 2];
+
+
+        glm::vec3 v1 = glm::vec3(
+            attributes.vertices[vData1.vertex_index * 3],
+            attributes.vertices[(vData1.vertex_index * 3) + 1],
+            attributes.vertices[(vData1.vertex_index * 3) + 2]
+        );
+
+        glm::vec3 v2 = glm::vec3(
+            attributes.vertices[vData2.vertex_index * 3],
+            attributes.vertices[(vData2.vertex_index * 3) + 1],
+            attributes.vertices[(vData2.vertex_index * 3) + 2]
+        );
+
+        glm::vec3 v3 = glm::vec3(
+            attributes.vertices[vData3.vertex_index * 3],
+            attributes.vertices[(vData3.vertex_index * 3) + 1],
+            attributes.vertices[(vData3.vertex_index * 3) + 2]
+        );
+
+        glm::vec2 uv1 = glm::vec2(
+            attributes.texcoords[(vData1.texcoord_index * 2)],
+            attributes.texcoords[(vData1.texcoord_index * 2) + 1]
+        );
+
+        glm::vec2 uv2 = glm::vec2(
+            attributes.texcoords[(vData2.texcoord_index * 2)],
+            attributes.texcoords[(vData2.texcoord_index * 2) + 1]
+        );
+
+        glm::vec2 uv3 = glm::vec2(
+            attributes.texcoords[(vData3.texcoord_index * 2)],
+            attributes.texcoords[(vData3.texcoord_index * 2) + 1]
+        );
+
+
+        glm::vec3 deltaPos1 = v2 - v1;
+        glm::vec3 deltaPos2 = v3 - v1;
+
+
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+
+        float r = 1.f / ((deltaUV1.x * deltaUV2.y) - (deltaUV1.y * deltaUV2.x));
+
+        glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+        glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+    }
+
+
+
     std::vector<GLfloat> fullVertexData;
     //get the EBO indices array
     //std::vector<GLuint> mesh_indices;
@@ -351,7 +444,18 @@ int main(void)
 
         fullVertexData.push_back(attributes.texcoords[vData.texcoord_index * 2]);
         fullVertexData.push_back(attributes.texcoords[vData.texcoord_index * 2 + 1]);
+
+       
+       fullVertexData.push_back(tangents[i].x);
+       fullVertexData.push_back(tangents[i].y);
+       fullVertexData.push_back(tangents[i].z);
+
+       fullVertexData.push_back(bitangents[i].x);
+       fullVertexData.push_back(bitangents[i].y);
+       fullVertexData.push_back(bitangents[i].z);
     }
+
+   
 
     GLuint VAO, VBO;
     //, EBO, VBO_UV;
@@ -379,7 +483,7 @@ int main(void)
         3,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        14 * sizeof(float),
         (void*) 0
     );
 
@@ -392,7 +496,7 @@ int main(void)
         3,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        14 * sizeof(float),
         (void*) normalptr
     );
     glEnableVertexAttribArray(1);
@@ -404,11 +508,33 @@ int main(void)
         2,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        14 * sizeof(float),
         (void*)uvptr
     );
  
     glEnableVertexAttribArray(2);
+
+    GLintptr tangentptr = 8 * sizeof(float);
+    glVertexAttribPointer(
+        3,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        14 * sizeof(float),
+        (void*)tangentptr
+    );
+    glEnableVertexAttribArray(3);
+
+    GLintptr bitangentptr = 11 * sizeof(float);
+    glVertexAttribPointer(
+        4,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        14 * sizeof(float),
+        (void*)bitangentptr
+    );
+    glEnableVertexAttribArray(4);
 
 
 
@@ -433,6 +559,32 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
 
+    GLuint norm_tex;
+    glGenTextures(1, &norm_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, norm_tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_SRC_COLOR);
+    glBlendEquation(GL_SUBTRACT);
+
+
+    glTexImage2D(GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        img_width2,
+        img_height2,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        normal_bytes
+    );
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(normal_bytes);
+
+
     
     #pragma endregion peepee
  
@@ -442,8 +594,8 @@ int main(void)
  
     glm::vec3 ambientColor = lightColor;
 
-    float specStr = 0.1f;
-    float specPhong = 20;
+    float specStr = 0.25f;
+    float specPhong = 16.f;
 
     float smallSpecStr = 0.1f;
     float bigSpecStr = 6.f;
@@ -561,6 +713,10 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
+
+
+
+
     while (!glfwWindowShouldClose(window))
     {
 
@@ -602,6 +758,7 @@ int main(void)
 
 
         glBindVertexArray(skyboxVAO);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT,0);
@@ -658,9 +815,15 @@ int main(void)
 
 
 
+        glActiveTexture(GL_TEXTURE0);
         GLuint tex0Address = glGetUniformLocation(shaderProg, "tex0");
         glBindTexture(GL_TEXTURE_2D, texture);
         glUniform1i(tex0Address, 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        GLuint normLoc = glGetUniformLocation(shaderProg, "norm_tex");
+        glBindTexture(GL_TEXTURE_2D, norm_tex);
+        glUniform1i(normLoc, 1);
 
         for (int i = 0; i < 5; i++) {
             
@@ -677,7 +840,13 @@ int main(void)
                 sizes[i]
             );
 
-            theta += 0.025;
+            transformation_matrix = glm::rotate(
+                transformation_matrix,
+                glm::radians(fixed_theta),
+                glm::normalize(glm::vec3(axis_x2, axis_y2, axis_z2))
+            );
+
+            theta += 0.01f;
             transformation_matrix = glm::rotate(
                 transformation_matrix,
                 glm::radians(theta),
@@ -695,7 +864,7 @@ int main(void)
 
                 transformation_matrix = glm::scale(
                     transformation_matrix,
-                    glm::vec3(0.01f, 0.01f, 0.01f)
+                    glm::vec3(1.f, 1.f, 1.f)
                 );
 
 
@@ -707,14 +876,14 @@ int main(void)
             unsigned int transformLoc = glGetUniformLocation(shaderProg, "transform");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
 
-            specStr = i % 2 ? smallSpecStr : bigSpecStr;
+            specStr = bigSpecStr;
 
             GLuint specStrAddress = glGetUniformLocation(shaderProg, "specStr");
             glUniform1f(specStrAddress, specStr);
 
             glUseProgram(shaderProg);
             glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
+            glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 14);
 
 
         }
